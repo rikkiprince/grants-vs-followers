@@ -1,0 +1,61 @@
+<html>
+
+<head>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="jquery.csv-0.71.min.js"></script>
+</head>
+
+<body>
+
+	<script>
+		var learningProviders;
+		var twitterFeeds;
+
+		$(document).ready(function() {
+			console.log("hello");
+
+			learningProvidersURL = "learning-providers-plus.csv";
+			$.ajax({
+				url: learningProvidersURL,
+				async: false,
+				success: function(csv) {
+					learningProviders = $.csv.toObjects(csv);
+				},
+			});
+
+			console.log(learningProviders[0]["WEBSITE_URL"]);
+
+			$.ajax({
+				url: "twitterAccounts.json",
+				async: false,
+				success: function(json) {
+					//console.log(json);
+					twitterFeeds = json;
+				}
+			});
+
+			var soton = twitterFeeds['southampton.ac.uk'];
+			// urgh hack
+			// http://stackoverflow.com/a/16590272/829305
+			console.log(soton[Object.keys(soton)[Object.keys(soton).length-1]]);
+
+			// for all unis
+			$.each(learningProviders, function(index, provider) {
+				var name = provider["PROVIDER_NAME"];
+				var url = provider["WEBSITE_URL"];
+				var host = url.replace('http://www.', '').replace('/', '');
+				var twitters = twitterFeeds[host];
+				var latestTwitter = twitters[Object.keys(twitters)[Object.keys(twitters).length-1]];
+				var gtr_id = provider["GTR_ID"];
+
+				$.ajax({
+					url: 'http://gtr.rcuk.ac.uk/organisation/'+gtr_id+'.json'
+				});
+
+				$('body').append("<div><p>"+host+" @"+latestTwitter+" - "+gtr_id+"</p></div>");
+			});
+		});
+	</script>
+</body>
+
+</html>
